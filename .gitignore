@@ -1,17 +1,17 @@
-# ❌ Ne pas suivre le fichier de connexion à la base de données
+#  Ne pas suivre le fichier de connexion à la base de données
 database/config/db_connect.php
 
-# ❌ Fichiers de données temporaires
+# Fichiers de données temporaires
 data.json
 *.log
 *.tmp
 
-# ❌ Fichiers système ou de l’éditeur
+#  Fichiers système ou de l’éditeur
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 
-# ❌ Caches ou dossiers à ignorer
+# Caches ou dossiers à ignorer
 vendor/
 node_modules/
