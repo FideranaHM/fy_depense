@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fy Depense – Connexion / Inscription</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Police minimaliste -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Feuille de style commune -->
+    <style>
+        /* Import de la police */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+        body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #f5f0e6; /* beige clair */
+        color: #3e2c1c; /* marron foncé */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        }
+
+        .form-wrapper {
+        background-color: #fffaf5; /* blanc/beige léger */
+        border: 1px solid #d5c4b0;
+        padding: 40px 30px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 15px rgba(62, 44, 28, 0.2);
+        }
+
+        h2 {
+        text-align: center;
+        color: #4a2e19;
+        margin-bottom: 25px;
+        }
+
+        form label {
+        display: block;
+        margin-bottom: 15px;
+        }
+
+        form label span {
+        display: block;
+        margin-bottom: 6px;
+        color: #6e4c33;
+        font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbb59d;
+        border-radius: 8px;
+        background-color: #fdfaf7;
+        font-size: 14px;
+        color: #3e2c1c;
+        transition: border-color 0.2s;
+        }
+
+        input:focus {
+        border-color: #a8743b;
+        outline: none;
+        }
+
+        button {
+        width: 100%;
+        padding: 12px;
+        background-color: #8b5e3c;
+        color: #fffaf0;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: background-color 0.3s;
+        }
+
+        button:hover {
+        background-color: #6b4428;
+        }
+
+        .msg {
+        margin-top: 12px;
+        font-size: 14px;
+        text-align: center;
+        padding: 8px;
+        border-radius: 6px;
+        display: none;
+        }
+
+        .msg.success {
+        display: block;
+        background-color: #d4edda;
+        color: #155724;
+        }
+
+        .msg.error {
+        display: block;
+        background-color: #f8d7da;
+        color: #721c24;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+        .form-wrapper {
+            padding: 30px 20px;
+        }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="form-wrapper">
+        <h2>Inscription</h2>
+        <form action="../../auth/inscription/inscription.php" method="POST" id="register-form">
+            <label>
+                <span>Nom d'utilisateur</span>
+                <input type="text" name="nom_utilisateur" required />
+            </label>
+            <label>
+                <span>Email</span>
+                <input type="email" name="email" required />
+            </label>
+            <label>
+                <span>Mot de passe</span>
+                <input type="password" name="mot_de_passe" required />
+            </label>
+            <button type="submit">S'inscrire</button>
+            <p class="msg"></p>
+        </form>
+        <div style="text-align:center; margin-top: 15px;">
+            <p style="margin: 8px 0;">
+                Vous avez déjà un compte ?
+                <a href="authentification.html" style="color: #8b5e3c; font-weight: bold;">Se connecter</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Script pour basculer les onglets et afficher les réponses JSON -->
+    <script>
+    document.querySelector('form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this));
+        const res = await fetch(this.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+        }).then(r => r.json());
+
+        const msg = this.querySelector('.msg');
+        msg.textContent = res.message || res.error;
+        msg.className = res.message ? 'msg success' : 'msg error';
+
+        // Redirection automatique après succès
+        if (res.success) {
+        setTimeout(() => {
+            window.location.href = 'dashboard.html'; // Chemin de redirection
+        }, 2000); // délai de 2 secondes avant redirection
+        }
+    });
+    </script>
+
+</body>
+</html>

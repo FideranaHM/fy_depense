@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard | Fy Dépense</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Icônes Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f2ec;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background-color: #6e4c1e;
+      color: white;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar-title {
+      text-align: center;
+      font-size: 1.5em;
+      margin-bottom: 30px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar-menu li {
+      margin: 15px 0;
+    }
+
+    .sidebar-menu a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      font-size: 1.1em;
+      transition: background 0.3s;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .sidebar-menu a:hover {
+      background-color: #8a5f2f;
+    }
+
+    .sidebar-menu i {
+      margin-right: 10px;
+    }
+
+    /* Main content */
+    .main-content {
+      margin-left: 250px;
+      padding: 40px;
+      flex-grow: 1;
+      background-color: #fffaf2;
+    }
+
+    .main-content h1 {
+      color: #6e4c1e;
+      margin-bottom: 20px;
+    }
+
+    .dashboard-card {
+      background-color: #f3e8d3;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .dashboard-card h2 {
+      margin-top: 0;
+      color: #5a3a1a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2 class="sidebar-title">Fy Dashboard</h2>
+    <ul class="sidebar-menu">
+      <li><a href="#"><i class="fa fa-home"></i> Accueil</a></li>
+      <li><a href="#"><i class="fa fa-users"></i> Utilisateurs</a></li>
+      <li><a href="#"><i class="fa fa-list"></i> Listes Achats</a></li>
+      <li><a href="produit.html"><i class="fa fa-box"></i> Produits</a></li>
+      <li><a href="../../auth/deconnexion/deconnexion.php"><i class="fa fa-sign-out-alt"></i> Déconnexion</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <h1>Bienvenue sur le Tableau de Bord</h1>
+
+    <div class="dashboard-card">
+      <h2>Résumé du jour</h2>
+      <p>Total d’achats : <strong>5</strong></p>
+      <p>Produits disponibles : <strong>12</strong></p>
+    </div>
+
+    <div class="dashboard-card">
+      <h2>Dernières activités</h2>
+      <ul>
+        <li>Nouvel utilisateur inscrit : <strong>Fy</strong></li>
+        <li>Achat ajouté : <strong>Miel 250g</strong></li>
+      </ul>
+    </div>
+  </main>
+
+</body>
+</html>

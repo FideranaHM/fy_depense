@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajouter un produit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- FontAwesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fffaf2;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background-color: #f3e8d3;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #5a3a1a;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      color: #3f2c14;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #c9b79d;
+      border-radius: 5px;
+      margin-top: 5px;
+      background-color: #fffaf2;
+    }
+
+    button {
+      margin-top: 20px;
+      background-color: #6e4c1e;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #8a5f2f;
+    }
+
+    .message {
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2><i class="fa fa-box"></i> Ajouter un produit</h2>
+
+    <form id="produitForm">
+      <label for="nom">Nom du produit</label>
+      <input type="text" id="nom" name="nom" required>
+
+      <label for="prix">Prix (Ar)</label>
+      <input type="number" id="prix" name="prix" required>
+
+      <button type="submit">Enregistrer</button>
+
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("produitForm");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const data = {
+        nom_produit: document.getElementById("nom").value,
+        prix_produit: document.getElementById("prix").value,
+      };
+
+      fetch("http://localhost/fy_depense/api/produit/post_produit.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          message.innerHTML = "<span style='color:green;'>Produit ajouté avec succès </span>";
+          form.reset();
+        } else {
+          message.innerHTML = "<span style='color:red;'>Erreur : " + result.error + "</span>";
+        }
+      })
+      .catch(error => {
+        message.innerHTML = "<span style='color:red;'>Erreur de connexion à l'API </span>";
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+fy_depense
+│   
+│   api
+│   ├── achat
+│   │   ├── delete_achat.php
+│   │   ├── get_achat.php
+│   │   ├── index.php
+│   │   ├── post_achat.php
+│   │   └── put_achat.php
+│   ├── liste_achat
+│   │   ├── delete_liste.php
+│   │   ├── get_liste.php
+│   │   ├── index.php
+│   │   ├── post_liste.php
+│   │   └── put_liste.php
+│   ├── produit
+│   │   ├── delete_produit.php
+│   │   ├── get_produit.php
+│   │   ├── index.php
+│   │   ├── post_produit.php
+│   │   └── put_produit.php
+│   └── utilisateur
+│       ├── delete_utilisateur.php
+│       ├── get_utilisateur.php
+│       ├── index.php
+│       ├── post_utilisateur.php
+│       └── put_utilisateur.php
+│   assets
+│   ├── css
+│   │   └── style.css
+│   └── js
+│   auth
+│   ├── authentification
+│   │   └── authentification.php
+│   ├── deconnexion
+│   │   └── deconnexion.php
+│   └── inscription
+│       └── inscription.php
+│   database
+│   ├── config
+│   │   └── db_connect.php
+│   └── sql
+│       ├── achat.php
+│       ├── create_db.php
+│       ├── liste_achat.php
+│       ├── produit.php
+│       └── utilisateur.php
+│   templates
+│   ├── views
+│   │   ├── achat.html
+│   │   ├── authentification.html
+│   │   ├── dashboard.html
+│   │   ├── inscription.html
+│   │   ├── produit.html
+│   │   └── utilisateur.html
+│   └── acceuil.html
+│   data.json
+│   index.php
