@@ -1,58 +1,201 @@
-fy_depense
-│   
-│   api
-│   ├── achat
-│   │   ├── delete_achat.php
-│   │   ├── get_achat.php
-│   │   ├── index.php
-│   │   ├── post_achat.php
-│   │   └── put_achat.php
-│   ├── liste_achat
-│   │   ├── delete_liste.php
-│   │   ├── get_liste.php
-│   │   ├── index.php
-│   │   ├── post_liste.php
-│   │   └── put_liste.php
-│   ├── produit
-│   │   ├── delete_produit.php
-│   │   ├── get_produit.php
-│   │   ├── index.php
-│   │   ├── post_produit.php
-│   │   └── put_produit.php
-│   └── utilisateur
-│       ├── delete_utilisateur.php
-│       ├── get_utilisateur.php
-│       ├── index.php
-│       ├── post_utilisateur.php
-│       └── put_utilisateur.php
-│   assets
-│   ├── css
-│   │   └── style.css
-│   └── js
-│   auth
-│   ├── authentification
-│   │   └── authentification.php
-│   ├── deconnexion
-│   │   └── deconnexion.php
-│   └── inscription
-│       └── inscription.php
-│   database
-│   ├── config
-│   │   └── db_connect.php
-│   └── sql
-│       ├── achat.php
-│       ├── create_db.php
-│       ├── liste_achat.php
-│       ├── produit.php
-│       └── utilisateur.php
-│   templates
-│   ├── views
-│   │   ├── achat.html
-│   │   ├── authentification.html
-│   │   ├── dashboard.html
-│   │   ├── inscription.html
-│   │   ├── produit.html
-│   │   └── utilisateur.html
-│   └── acceuil.html
-│   data.json
-│   index.php
+fy_depense/
+├── backend/                 # Backend PHP (Clean Architecture)
+│   ├── src/
+│   │   ├── Domain/
+│   │   │   ├── Entity/
+│   │   │   ├── Repository/
+│   │   │   └── Exception/
+│   │   ├── Application/
+│   │   │   ├── UseCase/
+│   │   │   └── DTO/
+│   │   ├── Infrastructure/
+│   │   │   ├── Repository/
+│   │   │   ├── Database/
+│   │   │   └── Service/
+│   │   └── Presentation/
+│   │       ├── Controller/
+│   │       └── Middleware/
+│   ├── public/
+│   │   └── index.php        # Point d'entrée unique (Front Controller)
+│   ├── config/
+│   ├── vendor/              # Composer
+│   └── composer.json
+│
+├── frontend/                # Next.js (App Router)
+│   ├── src/
+│   │   ├── app/             # Pages (Next.js 13+)
+│   │   ├── features/        # Logique métier par fonctionnalité
+│   │   ├── components/      # Composants réutilisables
+│   │   ├── services/        # Appels API
+│   │   ├── hooks/           # Hooks personnalisés
+│   │   └── lib/             # Utilitaires
+│   ├── public/
+│   └── package.json
+│
+└── README.md
+
+fy_depense/backend/
+├── src/
+│   ├── Domain/
+│   │   ├── Entity/
+│   │   │   ├── Utilisateur.php
+│   │   │   ├── Produit.php
+│   │   │   ├── ListeAchat.php
+│   │   │   └── Achat.php
+│   │   ├── Repository/
+│   │   │   ├── UtilisateurRepositoryInterface.php
+│   │   │   ├── ProduitRepositoryInterface.php
+│   │   │   ├── ListeAchatRepositoryInterface.php
+│   │   │   └── AchatRepositoryInterface.php
+│   │   └── Exception/
+│   │       └── DomainException.php
+│   │
+│   ├── Application/
+│   │   ├── UseCase/
+│   │   │   ├── Utilisateur/
+│   │   │   │   ├── RegisterUtilisateurUseCase.php
+│   │   │   │   └── LoginUtilisateurUseCase.php
+│   │   │   ├── ListeAchat/
+│   │   │   │   └── CreerListeAchatUseCase.php
+│   │   │   ├──  Achat/
+│   │   │   │    └── AjouterAchatUseCase.php
+│   │   │   └── Migration/
+│   │   │       └── RunMigrationUseCase.php
+│   │   ├── Port/
+│   │   │   ├── MigrationServiceinterface.php
+│   │   └── DTO/
+│   │       ├── RegisterUtilisateurDTO.php
+│   │       ├── LoginUtilisateurDTO.php
+│   │       ├── CreerListeAchatDTO.php
+│   │       └── AjouterAchatDTO.php
+│   │
+│   ├── Infrastructure/
+│   │   ├── Repository/
+│   │   │   ├── PdoUtilisateurRepository.php
+│   │   │   ├── PdoProduitRepository.php
+│   │   │   ├── PdoListeAchatRepository.php
+│   │   │   └── PdoAchatRepository.php
+│   │   ├── Database/
+│   │   │   └── PdoConnection.php
+│   │   ├── Migration/
+│   │   │   └── DbMigrationService.php
+│   │   └── Service/
+│   │       ├── PasswordHasher.php
+│   │       └── JwtService.php
+│   │
+│   └── Presentation/
+│       ├── Controller/
+│       │   ├── UtilisateurController.php
+│       │   ├── ListeAchatController.php
+│       │   └── AchatController.php
+│       └── Middleware/
+│           └── AuthMiddleware.php
+│
+├── config/
+│   └── config.php
+├── public/
+│   └── index.php
+├── composer.json
+└── .env.example
+
+fy_depense/backend/
+Racine du backend : elle contient tout ce qui est nécessaire pour faire tourner l’API PHP sans jamais exposer 
+les sources hors du dossier public/.
+
+src/Domain/Entity/Utilisateur.php
+Représente un utilisateur dans sa forme la plus pure : identifiant, nom, email et mot de passe hashé. C’est un 
+objet métier sans aucune dépendance technique ; il sert à transporter et valider les données utilisateur à 
+l’intérieur de l’application.
+
+src/Domain/Entity/Produit.php
+Capsule la notion de produit (id et nom). Simple et autonome, il permet de manipuler un article sans se soucier 
+de la façon dont il sera stocké ou affiché.
+
+src/Domain/Entity/ListeAchat.php
+Modélise une liste d’achats : identifiant, nom choisi par l’utilisateur, date de création et référence vers son 
+propriétaire. C’est le regroupement logique dans lequel on rangera plusieurs achats.
+
+src/Domain/Entity/Achat.php
+Définit un achat concret : quantité, prix unitaire, unité (kg, L, pcs), produit concerné et liste parente. Le 
+prix total est calculé automatiquement par la base de données via une colonne générée.
+
+src/Domain/Repository/UtilisateurRepositoryInterface.php
+Contrat écrit par le domaine : « Pour stocker/récupérer un utilisateur, on devra implémenter sauvegarder(), 
+trouverParEmail() et trouverParId() ». Ainsi le cœur métier ne dépend pas de MySQL, Redis ou autre.
+
+src/Domain/Repository/ProduitRepositoryInterface.php
+Promet les opérations indispensables sur les produits (sauvegarder, trouver par id, lister) sans révéler la 
+technologie sous-jacente.
+
+src/Domain/Repository/ListeAchatRepositoryInterface.php
+Fixe les méthodes nécessaires pour créer, récupérer et lister les listes d’achats, en garantissant que seule 
+la couche infrastructure écrira le SQL correspondant.
+
+src/Domain/Repository/AchatRepositoryInterface.php
+Déclare comment persister un achat et comment le filtrer par date ou par produit, laissant au code métier la 
+liberté d’appeler ces opérations sans connaître la base.
+
+src/Domain/Exception/DomainException.php
+Exception métier générique : quand une règle métier est violée (email déjà pris, quantité négative, etc.) on 
+lance cette exception pour signaler le problème sans fuir des détails techniques.
+
+src/Application/UseCase/Utilisateur/RegisterUtilisateurUseCase.php
+Scénario « je m’inscris » : il valide les données, vérifie l’unicité de l’email, hashe le mot de passe et 
+demande au repository de stocker l’utilisateur. Il ne sait pas que c’est une API REST.
+
+src/Application/UseCase/Utilisateur/LoginUtilisateurUseCase.php
+Scénario « je me connecte » : il compare le mot de passe reçu avec le hash stocké et, si tout est bon, 
+génère un token JWT à renvoyer au client.
+
+src/Application/UseCase/ListeAchat/CreerListeAchatUseCase.php
+Permet à un utilisateur de créer une nouvelle liste d’achats ; il vérifie que l’utilisateur existe, construit 
+l’entité et la persiste via le repository dédié.
+
+src/Application/UseCase/Achat/AjouterAchatUseCase.php
+Ajoute un produit dans une liste avec sa quantité et son prix unitaire ; il s’assure que la liste et le produit 
+existent, calcule le prix total et enregistre l’achat.
+
+src/Application/DTO/RegisterUtilisateurDTO.php
+Simple conteneur de données (nom, email, mot de passe brut) qui voyage entre le contrôleur et le use-case sans 
+pollution métier.
+
+src/Application/DTO/LoginUtilisateurDTO.php
+Transporte email + mot de passe saisis lors de la connexion, garantissant un passage clair et unique vers le 
+use-case login.
+
+src/Application/DTO/CreerListeAchatDTO.php
+Encapsule l’identifiant de l’utilisateur propriétaire et le nom choisi pour la nouvelle liste, facilitant 
+ainsi les transferts entre couches.
+
+src/Application/DTO/AjouterAchatDTO.php
+Regroupe liste_achat_id, produit_id, quantité, prix_unitaire et unité ; c’est le bouquet d’informations nécessaire pour créer un achat.
+src/Infrastructure/Repository/PdoUtilisateurRepository.php
+Implémentation MySQL de l’interface du domaine : requêtes INSERT et SELECT préparées, gestion des exceptions SQL, conversion des lignes en entités Utilisateur.
+src/Infrastructure/Repository/PdoProduitRepository.php
+Stocke et récupère les produits en base via PDO, transformant les enregistrements en objets Produit métier.
+src/Infrastructure/Repository/PdoListeAchatRepository.php
+S’occupe de la persistance des listes d’achats et propose des méthodes pour lister celles d’un utilisateur donné, en respectant le contrat défini dans le domaine.
+src/Infrastructure/Repository/PdoAchatRepository.php
+Écriture et lecture des achats ; il fournit aussi des requêtes filtrées par date ou par produit, exploitant les index créés en base pour la performance.
+src/Infrastructure/Database/PdoConnection.php
+Singleton qui centralise la connexion PDO : une seule instance par requête, évite la multiplication des accès réseau vers MySQL.
+src/Infrastructure/Service/PasswordHasher.php
+Service technique dédié au hash et à la vérification des mots de passe ; on y change l’algorithme sans toucher au métier.
+src/Infrastructure/Service/JwtService.php
+Génère et valide les tokens JWT (access token) grâce à la clé secrète stockée dans .env, permettant l’authentification stateless de l’API.
+src/Presentation/Controller/UtilisateurController.php
+Point d’entrée web pour tout ce qui touche aux utilisateurs : il reçoit le JSON, appelle le use-case adéquat et renvoie les bonnes réponses HTTP (201, 400, etc.).
+src/Presentation/Controller/ListeAchatController.php
+Adapte les requêtes HTTP concernant les listes d’achats (créer, lister) en appels métier et renvoie les résultats sous forme JSON.
+src/Presentation/Controller/AchatController.php
+Transforme les requêtes d’ajout ou de consultation d’achats en appels vers les use-cases, en respectant les codes HTTP appropriés.
+src/Presentation/Middleware/AuthMiddleware.php
+Couche intermédiaire qui extrait et vérifie le token JWT présent dans l’en-tête Authorization avant d’autoriser l’accès aux routes protégées.
+config/config.php
+Fichier central pour regrouper les paramètres globaux (constantes, timezone, locale) ; il est inclus très tôt pour configurer l’environnement d’exécution.
+public/index.php
+Unique porte d’entrée web (Front Controller) : il charge l’autoload, lit la méthode HTTP et l’URI, trouve la bonne route, instancie les contrôleurs et renvoie du JSON.
+composer.json
+Table des matières des dépendances PHP et mapping PSR-4 ; c’est le document que Composer lit pour télécharger et autoloader toutes les bibliothèques.
+.env.example
+Modèle de configuration sensible (base, user, mot de passe, clé JWT) qu’on copie en .env pour personnaliser chaque environnement sans modifier le code.
