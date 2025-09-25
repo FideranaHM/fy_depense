@@ -19,8 +19,10 @@ final class LoginUtilisateurUseCase
     public function execute(LoginUtilisateurDTO $dto): string
     {
         $user = $this->repo->trouverParEmail($dto->email);
-        if ($user === null || !$this->hasher->verify($dto->password, $user->getPassword())) {
-            throw new \Exception("Email ou mot de passe incorrect");
+        if ($user === null) {
+            throw new \Exception("Utilisateur introvable");
+        } elseif (!$this->hasher->verify($dto->password, $user->getPassword())) {
+            throw new \Exception("Mot de passe incorrect");
         }
         return $this->jwt->encode(['uid' => $user->getId()]);
     }

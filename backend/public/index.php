@@ -35,35 +35,28 @@ try {
     exit;
 }
 
-/* ---------- 3️⃣ Services & Repositories ---------- */
-use App\Infrastructure\Service\PasswordHasher;
-use App\Infrastructure\Service\JwtService;
-use App\Infrastructure\Repository\PdoUtilisateurRepository;
-
-$passwordHasher = new PasswordHasher();
-$jwtService     = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
-$userRepo       = new PdoUtilisateurRepository($pdo);
-
-/* ---------- 4️⃣ UseCases ---------- */
-use App\Application\UseCase\Utilisateur\RegisterUtilisateurUseCase;
-use App\Application\UseCase\Utilisateur\LoginUtilisateurUseCase;
-
-$registerUC = new RegisterUtilisateurUseCase($userRepo, $passwordHasher);
-$loginUC    = new LoginUtilisateurUseCase($userRepo, $passwordHasher, $jwtService);
-
 /* ---------- 5️⃣ Controllers ---------- */
 use App\Presentation\Controller\UtilisateurController;
 
-$userController = new UtilisateurController($registerUC, $loginUC);
+$userController = new UtilisateurController();
 
 /* ---------- 6️⃣ Table de routage ---------- */
-$routes = [
-    'GET /' => function () {
-        echo json_encode(['msg' => 'API fy_depense opérationnelle']);
-    },
-    'POST /api/utilisateur/register' => [$userController, 'register'], // ✅ bien l’objet
-    'POST /api/utilisateur/login'    => [$userController, 'login'],
-];
+$routes = array_merge(
+    UtilisateurController::routes($userController),
+    // ProduitController::routes($produitController)
+    // ajouter ici d'autres controllers si besoin
+);
+
+$prefix = '/api'; // Préfixe global pour toutes les routes API
+$routesWithPrefix = [];
+
+foreach ($routes as $route => $handler) {
+    [$method, $path] = explode(' ', $route, 2);
+    $routesWithPrefix["$method $prefix$path"] = $handler;
+}
+
+// Remplacer les routes originales par les routes avec préfixe
+$routes = $routesWithPrefix;
 
 /* ---------- 7️⃣ Lecture requête ---------- */
 $methode = $_SERVER['REQUEST_METHOD'];
