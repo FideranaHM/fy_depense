@@ -76,7 +76,7 @@ class UtilisateurController
             http_response_code(201);
             echo json_encode([
                 'status' => 'success',
-                'data' => null,
+                'data' => [ 'email' => $body['email'] ?? '' , 'nom' => $body['nom'] ?? ''],
                 'message' => 'Utilisateur créé',
                 'erreur' => null
             ]);

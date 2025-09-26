@@ -35,4 +35,18 @@ final class PdoUtilisateurRepository
             $row['password']
         );
     }
+
+     public function trouverParId(int $id): ?Utilisateur
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM utilisateur WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? new Utilisateur(
+            (int)$row['id'],
+            $row['nom'],
+            $row['email'],
+            $row['password']
+        ) : null;
+    }
 }

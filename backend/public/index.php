@@ -37,15 +37,25 @@ try {
 
 /* ---------- 5️⃣ Controllers ---------- */
 use App\Presentation\Controller\UtilisateurController;
+use App\Presentation\Controller\ListeAchatController;
 
 $userController = new UtilisateurController();
+$listeController = new ListeAchatController();
 
 /* ---------- 6️⃣ Table de routage ---------- */
 $routes = array_merge(
+    ['GET /' => function () {
+        echo json_encode([
+            'status'  => 'success',
+            'data'    => null,
+            'message' => 'API fy_depense operationnelle',
+            'erreur'  => null
+        ]);
+    }],
     UtilisateurController::routes($userController),
-    // ProduitController::routes($produitController)
-    // ajouter ici d'autres controllers si besoin
+    ListeAchatController::routes($listeController)
 );
+
 
 $prefix = '/api'; // Préfixe global pour toutes les routes API
 $routesWithPrefix = [];
@@ -58,11 +68,14 @@ foreach ($routes as $route => $handler) {
 // Remplacer les routes originales par les routes avec préfixe
 $routes = $routesWithPrefix;
 
+
 /* ---------- 7️⃣ Lecture requête ---------- */
 $methode = $_SERVER['REQUEST_METHOD'];
 $uri     = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $key     = $methode . ' ' . $uri;
 
+error_log("DEBUG: key recherchée = $key");
+error_log("DEBUG: routes dispo = " . implode(", ", array_keys($routes)));
 if (!isset($routes[$key])) {
     http_response_code(404);
     echo json_encode(['erreur' => 'Route introuvable']);
@@ -99,3 +112,8 @@ try {
         'line'   => $e->getLine(),
     ]);
 }
+
+/* ----------Listes Achat  ---------- */
+
+
+
