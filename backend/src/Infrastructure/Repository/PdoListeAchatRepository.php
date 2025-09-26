@@ -7,6 +7,7 @@ use App\Domain\Entity\ListeAchat;
 use PDO;
 
 
+
 final class PdoListeAchatRepository
 {
     public function __construct(private PDO $pdo) {}
@@ -59,4 +60,33 @@ final class PdoListeAchatRepository
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([':id' => $id]);
     }
+
+    public function trouverParUtilisateurEtDate(int $userId, \DateTimeInterface $debut, \DateTimeInterface $fin): array
+    {
+        $sql = 'SELECT id, nom_liste, created_at FROM liste_achat
+                WHERE utilisateur_id = :uid
+                AND created_at BETWEEN :debut AND :fin
+                ORDER BY created_at DESC';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':uid'   => $userId,
+            ':debut' => $debut->format('Y-m-d H:i:s'),
+            ':fin'   => $fin->format('Y-m-d H:i:s'),
+        ]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        // return [
+        //     'id' => 1,
+        //     'nom_liste' => 'Exemple',
+        //     'created_at' => (new \DateTime())->format('Y-m-d H:i:s')
+        // ];
+    }
+
+    public function trouverParUtilisateurEtJour(int $userId, \DateTimeInterface $jour): array
+    {
+        $debut = new \DateTime($jour->format('Y-m-d') . ' 00:00:00');
+        $fin   = new \DateTime($jour->format('Y-m-d') . ' 23:59:59');
+
+        return $this->trouverParUtilisateurEtDate($userId, $debut, $fin);
+    }
+
 }

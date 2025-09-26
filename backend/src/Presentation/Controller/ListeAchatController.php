@@ -7,6 +7,8 @@ use App\Application\DTO\CreerListeAchatDTO;
 use App\Application\UseCase\ListeAchat\CreerListeAchatUseCase;
 use App\Application\UseCase\ListeAchat\MettreAJourListeAchatUseCase;
 use App\Application\UseCase\ListeAchat\SupprimerListeAchatUseCase;
+use App\Application\UseCase\ListeAchat\FiltrerListeParDateUseCase;
+use App\Application\UseCase\ListeAchat\FiltrerListeParJourUseCase;
 use App\Infrastructure\Database\PdoConnection;
 use App\Infrastructure\Repository\PdoListeAchatRepository;
 use App\Infrastructure\Repository\PdoUtilisateurRepository;
@@ -18,18 +20,22 @@ class ListeAchatController
     private PdoListeAchatRepository $listeRepo;
     private MettreAJourListeAchatUseCase $majUC;
     private SupprimerListeAchatUseCase $deleteUC;
+    private FiltrerListeParDateUseCase $dateUC;
+    private FiltrerListeParJourUseCase $jourUC;
     private JwtService $jwtService;
     private static string $prefix = '/listesAchat';
 
     public function __construct()
     {
         $pdo       = PdoConnection::get();
-        $userRepo  = new PdoUtilisateurRepository($pdo);
+        $userRepo  = new PdoUtilisateurRepository($pdo); 
         $this->listeRepo = new PdoListeAchatRepository($pdo);
 
         $this->useCase = new CreerListeAchatUseCase($userRepo, $this->listeRepo);
         $this->majUC = new MettreAJourListeAchatUseCase($this->listeRepo);
         $this->deleteUC = new SupprimerListeAchatUseCase($this->listeRepo);
+        $this->dateUC = new FiltrerListeParDateUseCase($this->listeRepo);
+        $this->jourUC = new FiltrerListeParJourUseCase($this->listeRepo);
         $this->jwtService = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
     }
 
@@ -44,7 +50,9 @@ class ListeAchatController
             $r('GET',  '', [$controller, 'listeAchat']),
             $r('POST', '', [$controller, 'creationListesAchat']),
             $r('PUT',  '', [$controller, 'modifierListe']),
-            $r('DELETE', '', [$controller, 'supprimerListe'])
+            $r('DELETE', '', [$controller, 'supprimerListe']),
+            $r('GET', '/date', [$controller, 'filtrerParDate']),
+            $r('GET', '/jour', [$controller, 'filtrerParJour'])
         );
     }
 
@@ -147,6 +155,7 @@ class ListeAchatController
             $this->jsonResponse(['erreur' => $e->getMessage()], 400);
         }
     }
+
     public function supprimerListe(): void
     {
         try {
@@ -191,4 +200,62 @@ class ListeAchatController
         }
     }
 
+    public function filtrerParDate(): void
+{
+    try {
+        $userId = $this->getUserIdFromToken();
+
+        $debutStr = $_GET['debut'] ?? '';
+        $finStr   = $_GET['fin']   ?? '';
+
+        if ($debutStr && $finStr) {
+            // Intervalle de dates : inclut toute la journée
+            $debut = new \DateTime($debutStr . ' 00:00:00');
+            $fin   = new \DateTime($finStr . ' 23:59:59');
+            $listes = $this->dateUC->execute($userId, $debut, $fin);
+        } elseif ($debutStr) {
+            // Une seule date → on redirige vers filtrerParJour
+            $jour = new \DateTime($debutStr);
+            $listes = $this->jourUC->execute($userId, $jour);
+        } else {
+            // Aucun filtre → toutes les listes
+            $listes = $this->listeRepo->trouverParUtilisateur($userId);
+        }
+
+        $this->jsonResponse([
+            'data'    => $listes,
+            'message' => 'Listes filtrées'
+        ]);
+
+    } catch (\Throwable $e) {
+        $this->jsonResponse(['erreur' => $e->getMessage()], 400);
+    }
+}
+
+public function filtrerParJour(): void
+{
+    try {
+        $userId = $this->getUserIdFromToken();
+
+        $jourStr = $_GET['jour'] ?? '';
+        if ($jourStr === '') {
+            throw new \Exception("Paramètre 'jour' manquant (format YYYY-MM-DD attendu)");
+        }
+
+        // Intervalle d’un jour complet
+        $debut = new \DateTime($jourStr . ' 00:00:00');
+        $fin   = new \DateTime($jourStr . ' 23:59:59');
+        $listes = $this->dateUC->execute($userId, $debut, $fin);
+
+        $this->jsonResponse([
+            'data'    => $listes,
+            'message' => "Listes du {$jourStr}"
+        ]);
+
+    } catch (\Throwable $e) {
+        $this->jsonResponse(['erreur' => $e->getMessage()], 400);
+    }
+}
+
+    
 }

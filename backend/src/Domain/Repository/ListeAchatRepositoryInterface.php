@@ -27,4 +27,16 @@ interface ListeAchatRepositoryInterface
      * Supprime une liste (retourne true si ligne supprimée)
      */
     public function supprimer(int $id): bool;
+
+    /**
+     * Renvoie les listes d’un utilisateur entre 2 dates (incluses)
+     * @return array[]
+     */
+    public function trouverParUtilisateurEtDate(int $userId, \DateTimeInterface $debut, \DateTimeInterface $fin): array;
+
+    /**
+     * Renvoie les listes d’un utilisateur à une date précise
+     * @return array[]
+     */
+    public function trouverParUtilisateurEtJour(int $userId, \DateTimeInterface $jour): array;
 }
