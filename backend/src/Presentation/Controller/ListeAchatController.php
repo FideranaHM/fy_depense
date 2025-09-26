@@ -6,6 +6,7 @@ namespace App\Presentation\Controller;
 use App\Application\DTO\CreerListeAchatDTO;
 use App\Application\UseCase\ListeAchat\CreerListeAchatUseCase;
 use App\Application\UseCase\ListeAchat\MettreAJourListeAchatUseCase;
+use App\Application\UseCase\ListeAchat\SupprimerListeAchatUseCase;
 use App\Infrastructure\Database\PdoConnection;
 use App\Infrastructure\Repository\PdoListeAchatRepository;
 use App\Infrastructure\Repository\PdoUtilisateurRepository;
@@ -16,6 +17,7 @@ class ListeAchatController
     private CreerListeAchatUseCase $useCase;
     private PdoListeAchatRepository $listeRepo;
     private MettreAJourListeAchatUseCase $majUC;
+    private SupprimerListeAchatUseCase $deleteUC;
     private JwtService $jwtService;
     private static string $prefix = '/listesAchat';
 
@@ -27,6 +29,7 @@ class ListeAchatController
 
         $this->useCase = new CreerListeAchatUseCase($userRepo, $this->listeRepo);
         $this->majUC = new MettreAJourListeAchatUseCase($this->listeRepo);
+        $this->deleteUC = new SupprimerListeAchatUseCase($this->listeRepo);
         $this->jwtService = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
     }
 
@@ -40,7 +43,8 @@ class ListeAchatController
         return array_merge(
             $r('GET',  '', [$controller, 'listeAchat']),
             $r('POST', '', [$controller, 'creationListesAchat']),
-            $r('PUT',  '', [$controller, 'modifierListe'])
+            $r('PUT',  '', [$controller, 'modifierListe']),
+            $r('DELETE', '', [$controller, 'supprimerListe'])
         );
     }
 
@@ -143,4 +147,48 @@ class ListeAchatController
             $this->jsonResponse(['erreur' => $e->getMessage()], 400);
         }
     }
+    public function supprimerListe(): void
+    {
+        try {
+            $userId = $this->getUserIdFromToken();
+            $body = $this->getRequestBody();
+
+            $listeId = (int) ($body['id'] ?? 0);
+            $confirm = $body['confirm'] ?? false; // Champ pour confirmation
+
+            if ($listeId <= 0) {
+                throw new \Exception("ID invalide");
+            }
+
+            if (!$confirm) {
+                // Demande de confirmation
+                $this->jsonResponse([
+                    'message' => 'Veuillez confirmer la suppression en envoyant { "id": '.$listeId.', "confirm": true }'
+                ], 400);
+                return;
+            }
+
+            // Vérifie que la liste appartient bien à l'utilisateur
+            $liste = $this->listeRepo->trouverParId($listeId);
+            if (!$liste || $liste->getUtilisateurId() !== $userId) {
+                throw new \Exception("Liste introuvable ou non autorisée");
+            }
+
+            // Supprime
+            $ok = $this->deleteUC->execute($listeId);
+            if (!$ok) {
+                throw new \Exception("Aucune ligne supprimée");
+            }
+
+            $this->jsonResponse([
+                'data'    => ['id' => $listeId],
+                'message' => 'Liste supprimée'
+            ]);
+
+        } catch (\Throwable $e) {
+            $status = $e->getMessage() === 'Token manquant' ? 401 : 400;
+            $this->jsonResponse(['erreur' => $e->getMessage()], $status);
+        }
+    }
+
 }
