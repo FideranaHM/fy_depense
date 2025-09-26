@@ -6,6 +6,7 @@ namespace App\Infrastructure\Repository;
 use App\Domain\Entity\ListeAchat;
 use PDO;
 
+
 final class PdoListeAchatRepository
 {
     public function __construct(private PDO $pdo) {}
@@ -45,7 +46,7 @@ final class PdoListeAchatRepository
         );
     }
 
-    public function modifier(int $id, string $nom): bool
+    public function mettreAJour(int $id, string $nom): bool
     {
         $sql = 'UPDATE liste_achat SET nom_liste = :nom WHERE id = :id';
         $stmt = $this->pdo->prepare($sql);

@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\ListeAchat;
 
-use App\Domain\Repository\ListeAchatRepositoryInterface;
+use App\Infrastructure\Repository\PdoListeAchatRepository;
 
 final class MettreAJourListeAchatUseCase
 {
-    public function __construct(private ListeAchatRepositoryInterface $listeRepo) {}
+    public function __construct(private PdoListeAchatRepository $listeRepo)
+    {
+        $this->listeRepo = $listeRepo;
+    }
 
     public function execute(int $listeId, string $nom): bool
     {

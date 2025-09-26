@@ -5,15 +5,18 @@ namespace App\Presentation\Controller;
 
 use App\Application\DTO\CreerListeAchatDTO;
 use App\Application\UseCase\ListeAchat\CreerListeAchatUseCase;
+use App\Application\UseCase\ListeAchat\MettreAJourListeAchatUseCase;
 use App\Infrastructure\Database\PdoConnection;
 use App\Infrastructure\Repository\PdoListeAchatRepository;
 use App\Infrastructure\Repository\PdoUtilisateurRepository;
-use App\Infrastructure\Service\JwtService; // ← manquant
+use App\Infrastructure\Service\JwtService;
 
 class ListeAchatController
 {
     private CreerListeAchatUseCase $useCase;
     private PdoListeAchatRepository $listeRepo;
+    private MettreAJourListeAchatUseCase $majUC;
+    private JwtService $jwtService;
     private static string $prefix = '/listesAchat';
 
     public function __construct()
@@ -23,124 +26,121 @@ class ListeAchatController
         $this->listeRepo = new PdoListeAchatRepository($pdo);
 
         $this->useCase = new CreerListeAchatUseCase($userRepo, $this->listeRepo);
-
+        $this->majUC = new MettreAJourListeAchatUseCase($this->listeRepo);
+        $this->jwtService = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
     }
 
     public static function routes(self $controller): array
     {
-        $prefix = self::$prefix; // "/listesAchat"
-
-        // helper qui construit la clé "METHOD /prefix/path"
+        $prefix = self::$prefix;
         $r = fn(string $method, string $path, callable $handler) => [
             "$method $prefix$path" => $handler
         ];
 
         return array_merge(
             $r('GET',  '', [$controller, 'listeAchat']),
-            $r('POST', '', [$controller, 'creationListesAchat'])
+            $r('POST', '', [$controller, 'creationListesAchat']),
+            $r('PUT',  '', [$controller, 'modifierListe'])
         );
     }
 
+    /** -------------------- MÉTHODES PRIVÉES UTILES -------------------- */
+
+    private function getUserIdFromToken(): int
+    {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = str_replace('Bearer ', '', $authHeader);
+        if (!$token) {
+            $this->jsonResponse(['erreur' => 'Token manquant'], 401);
+            exit;
+        }
+
+        $payload = $this->jwtService->decode($token);
+        return (int) $payload->uid;
+    }
+
+    private function getRequestBody(): array
+    {
+        return json_decode(file_get_contents('php://input'), true) ?? [];
+    }
+
+    private function jsonResponse(array $data, int $statusCode = 200): void
+    {
+        http_response_code($statusCode);
+        echo json_encode(array_merge([
+            'status'  => $statusCode >= 400 ? 'error' : 'success',
+            'data'    => null,
+            'message' => null,
+            'erreur'  => null
+        ], $data));
+    }
+
+    /** -------------------- ACTIONS -------------------- */
 
     public function listeAchat(): void
     {
         try {
-            // 1️⃣ Récupère le token pour identifier l’utilisateur
-            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-            $token = str_replace('Bearer ', '', $authHeader);
-            if (!$token) {
-                http_response_code(401);
-                echo json_encode([
-                    'status'  => 'error',
-                    'data'    => null,
-                    'message' => null,
-                    'erreur'  => 'Token manquant'
-                ]);
-                return;
-            }
-
-            // 2️⃣ Décode le token
-            $jwtService = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
-            $payload    = $jwtService->decode($token);
-            $userId     = (int) $payload->uid;
-
-            // 3️⃣ Récupère toutes les listes de cet utilisateur
+            $userId = $this->getUserIdFromToken();
             $listes = $this->listeRepo->trouverParUtilisateur($userId);
 
-            http_response_code(200);
-            echo json_encode([
-                'status'  => 'success',
-                'data'    => $listes, // tableau associatif avec id, utilisateur_id, nom_liste, created_at
-                'message' => 'Liste des listes d’achats',
-                'erreur'  => null
+            $this->jsonResponse([
+                'data'    => $listes,
+                'message' => 'Liste des listes d’achats'
             ]);
-
         } catch (\Throwable $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status'  => 'error',
-                'data'    => null,
-                'message' => null,
-                'erreur'  => $e->getMessage()
-            ]);
+            $this->jsonResponse(['erreur' => $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Créer une liste d’achats (protégée par JWT)
-     */
     public function creationListesAchat(): void
     {
         try {
-            // 1️⃣ Récupère le token
-            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-            $token = str_replace('Bearer ', '', $authHeader);
-            if (!$token) {
-                http_response_code(401);
-                echo json_encode([
-                    'status'  => 'error',
-                    'data'    => null,
-                    'message' => null,
-                    'erreur'  => 'Token manquant'
-                ]);
-                return;
-            }
-
-            // 2️⃣ Décode le token
-            $jwtService = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
-            $payload    = $jwtService->decode($token);
-            $userId     = (int) $payload->uid;
-
-            // 3️⃣ Récupère le nom de la liste depuis le corps de la requête
-            $body = json_decode(file_get_contents('php://input'), true);
+            $userId = $this->getUserIdFromToken();
+            $body = $this->getRequestBody();
             $nomListe = $body['nom'] ?? 'Nouvelle liste';
 
-            // 4️⃣ Crée le DTO et exécute le UseCase
             $dto = new CreerListeAchatDTO($userId, $nomListe);
             $id  = $this->useCase->execute($dto);
 
-            // ✅ Réponse structurée
-            http_response_code(201);
-            echo json_encode([
-                'status'  => 'success',
-                'data'    => [
-                    'id'  => $id,
-                    'nom' => $nomListe
-                ],
-                'message' => 'Liste créée',
-                'erreur'  => null
-            ]);
+            $this->jsonResponse([
+                'data'    => ['id' => $id, 'nom' => $nomListe],
+                'message' => 'Liste créée'
+            ], 201);
 
         } catch (\Throwable $e) {
-            http_response_code(400);
-            echo json_encode([
-                'status'  => 'error',
-                'data'    => null,
-                'message' => null,
-                'erreur'  => $e->getMessage()
-            ]);
+            $this->jsonResponse(['erreur' => $e->getMessage()], 400);
         }
     }
 
+    public function modifierListe(): void
+    {
+        try {
+            $userId = $this->getUserIdFromToken();
+            $body = $this->getRequestBody();
+            $id = (int) ($_GET['id'] ?? 0);
+            $nom = trim($body['nom'] ?? '');
 
+            if ($id <= 0 || $nom === '') {
+                throw new \Exception("Données invalides");
+            }
+
+            $liste = $this->listeRepo->trouverParId($id);
+            if (!$liste || $liste->getUtilisateurId() !== $userId) {
+                throw new \Exception("Liste introuvable ou non autorisée");
+            }
+
+            $ok = $this->majUC->execute($id, $nom);
+            if (!$ok) {
+                throw new \Exception("Aucune ligne modifiée");
+            }
+
+            $this->jsonResponse([
+                'data'    => ['id' => $id, 'nom' => $nom],
+                'message' => 'Liste mise à jour'
+            ]);
+
+        } catch (\Throwable $e) {
+            $this->jsonResponse(['erreur' => $e->getMessage()], 400);
+        }
+    }
 }
