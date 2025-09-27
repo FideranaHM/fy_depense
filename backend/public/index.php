@@ -38,9 +38,11 @@ try {
 /* ---------- 5️⃣ Controllers ---------- */
 use App\Presentation\Controller\UtilisateurController;
 use App\Presentation\Controller\ListeAchatController;
+use App\Presentation\Controller\ProduitController;
 
 $userController = new UtilisateurController();
 $listeController = new ListeAchatController();
+$produitController = new ProduitController();
 
 /* ---------- 6️⃣ Table de routage ---------- */
 $routes = array_merge(
@@ -53,7 +55,8 @@ $routes = array_merge(
         ]);
     }],
     UtilisateurController::routes($userController),
-    ListeAchatController::routes($listeController)
+    ListeAchatController::routes($listeController),
+    ProduitController::routes($produitController)
 );
 
 
