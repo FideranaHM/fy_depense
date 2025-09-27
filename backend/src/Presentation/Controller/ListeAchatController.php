@@ -201,61 +201,60 @@ class ListeAchatController
     }
 
     public function filtrerParDate(): void
-{
-    try {
-        $userId = $this->getUserIdFromToken();
+    {
+        try {
+            $userId = $this->getUserIdFromToken();
 
-        $debutStr = $_GET['debut'] ?? '';
-        $finStr   = $_GET['fin']   ?? '';
+            $debutStr = $_GET['debut'] ?? '';
+            $finStr   = $_GET['fin']   ?? '';
 
-        if ($debutStr && $finStr) {
-            // Intervalle de dates : inclut toute la journée
-            $debut = new \DateTime($debutStr . ' 00:00:00');
-            $fin   = new \DateTime($finStr . ' 23:59:59');
+            if ($debutStr && $finStr) {
+                // Intervalle de dates : inclut toute la journée
+                $debut = new \DateTime($debutStr . ' 00:00:00');
+                $fin   = new \DateTime($finStr . ' 23:59:59');
+                $listes = $this->dateUC->execute($userId, $debut, $fin);
+            } elseif ($debutStr) {
+                // Une seule date → on redirige vers filtrerParJour
+                $jour = new \DateTime($debutStr);
+                $listes = $this->jourUC->execute($userId, $jour);
+            } else {
+                // Aucun filtre → toutes les listes
+                $listes = $this->listeRepo->trouverParUtilisateur($userId);
+            }
+
+            $this->jsonResponse([
+                'data'    => $listes,
+                'message' => 'Listes filtrées'
+            ]);
+
+        } catch (\Throwable $e) {
+            $this->jsonResponse(['erreur' => $e->getMessage()], 400);
+        }
+    }
+
+    public function filtrerParJour(): void
+    {
+        try {
+            $userId = $this->getUserIdFromToken();
+
+            $jourStr = $_GET['jour'] ?? '';
+            if ($jourStr === '') {
+                throw new \Exception("Paramètre 'jour' manquant (format YYYY-MM-DD attendu)");
+            }
+
+            // Intervalle d’un jour complet
+            $debut = new \DateTime($jourStr . ' 00:00:00');
+            $fin   = new \DateTime($jourStr . ' 23:59:59');
             $listes = $this->dateUC->execute($userId, $debut, $fin);
-        } elseif ($debutStr) {
-            // Une seule date → on redirige vers filtrerParJour
-            $jour = new \DateTime($debutStr);
-            $listes = $this->jourUC->execute($userId, $jour);
-        } else {
-            // Aucun filtre → toutes les listes
-            $listes = $this->listeRepo->trouverParUtilisateur($userId);
+
+            $this->jsonResponse([
+                'data'    => $listes,
+                'message' => "Listes du {$jourStr}"
+            ]);
+
+        } catch (\Throwable $e) {
+            $this->jsonResponse(['erreur' => $e->getMessage()], 400);
         }
-
-        $this->jsonResponse([
-            'data'    => $listes,
-            'message' => 'Listes filtrées'
-        ]);
-
-    } catch (\Throwable $e) {
-        $this->jsonResponse(['erreur' => $e->getMessage()], 400);
     }
-}
-
-public function filtrerParJour(): void
-{
-    try {
-        $userId = $this->getUserIdFromToken();
-
-        $jourStr = $_GET['jour'] ?? '';
-        if ($jourStr === '') {
-            throw new \Exception("Paramètre 'jour' manquant (format YYYY-MM-DD attendu)");
-        }
-
-        // Intervalle d’un jour complet
-        $debut = new \DateTime($jourStr . ' 00:00:00');
-        $fin   = new \DateTime($jourStr . ' 23:59:59');
-        $listes = $this->dateUC->execute($userId, $debut, $fin);
-
-        $this->jsonResponse([
-            'data'    => $listes,
-            'message' => "Listes du {$jourStr}"
-        ]);
-
-    } catch (\Throwable $e) {
-        $this->jsonResponse(['erreur' => $e->getMessage()], 400);
-    }
-}
-
     
 }
