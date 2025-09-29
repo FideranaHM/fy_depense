@@ -3,7 +3,10 @@
   "autoload": {
     "psr-4": {
       "App\\": "src/"
-    }
+    },
+    "files": [
+      "src/Helpers/Controller.php"
+    ]
   },
   "require": {
     "php": ">=8.1",

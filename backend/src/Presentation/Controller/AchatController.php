@@ -13,6 +13,7 @@ use App\Infrastructure\Database\PdoConnection;
 use App\Infrastructure\Repository\PdoAchatRepository;
 use App\Infrastructure\Repository\PdoProduitRepository;
 use App\Infrastructure\Service\JwtService;
+use function App\Helpers\Controller\getIdFromUrl;
 
 final class AchatController
 {
@@ -48,44 +49,45 @@ final class AchatController
         return array_merge(
             $r('GET', '', [$controller, 'listerAchats']),
             $r('POST', '', [$controller, 'creerAchat']),
-            // $r('GET', '/{id}', [$controller, 'trouverAchatParId']),
-            $r('PUT', '', [$controller, 'mettreAJourAchat']),
-            $r('DELETE', '', [$controller, 'supprimerAchat'])
+            $r('GET', '/{id}', [$controller, 'trouverAchatParId']),
+            $r('PUT', '/{id}', [$controller, 'mettreAJourAchat']),
+            $r('DELETE', '/{id}', [$controller, 'supprimerAchat'])
         );
     }
 
     // -------------------- ACTIONS --------------------
 
     public function listerAchats(): void
-{
-    try {
-        $achatsList = $this->listerUC->execute(0); // 0 = toutes les listes
-        $data = [];
+    {
+        try {
+            /** @var array<int, Achat> $achatsList */
+            $achatsList = $this->listerUC->execute(0); // 0 = toutes les listes
+            $data = [];
 
-        foreach ($achatsList as $achat) {
-            $data[] = [
-                'id'             => $achat->getId(),
-                'liste_achat_id' => $achat->getListeAchatId(),
-                'nom_liste'      => $achat->getNomListe(),
-                'produit_id'     => $achat->getProduitId(),
-                'nom_produit'    => $achat->getNomProduit(),
-                'quantite'       => $achat->getQuantite(),
-                'prix_unitaire'  => $achat->getPrixUnitaire(),
-                'prix_total'     => $achat->getPrixTotal(),
-                'unite'          => $achat->getUnite(),
-                'created_at'     => $achat->getCreatedAt()->format('Y-m-d H:i:s'),
-            ];
+            foreach ($achatsList as $achat) {
+                $data[] = [
+                    'id'             => $achat->getId(),
+                    'liste_achat_id' => $achat->getListeAchatId(),
+                    'nom_liste'      => $achat->getNomListe(),
+                    'produit_id'     => $achat->getProduitId(),
+                    'nom_produit'    => $achat->getNomProduit(),
+                    'quantite'       => $achat->getQuantite(),
+                    'prix_unitaire'  => $achat->getPrixUnitaire(),
+                    'prix_total'     => $achat->getPrixTotal(),
+                    'unite'          => $achat->getUnite(),
+                    'created_at'     => $achat->getCreatedAt()->format('Y-m-d H:i:s'),
+                ];
+            }
+
+            $this->jsonResponse([
+                'data'    => $data,
+                'message' => 'Liste des achats'
+            ]);
+
+        } catch (\Throwable $e) {
+            $this->jsonResponse(['erreur' => $e->getMessage()], 500);
         }
-
-        $this->jsonResponse([
-            'data'    => $data,
-            'message' => 'Liste des achats'
-        ]);
-
-    } catch (\Throwable $e) {
-        $this->jsonResponse(['erreur' => $e->getMessage()], 500);
     }
-}
 
 
     public function creerAchat(): void
@@ -127,38 +129,42 @@ final class AchatController
 }   
 
 
-    // public function trouverAchatParId(): void
-    // {
-    //     try {
-    //         $id = (int) ($_GET['id'] ?? 0);
-    //         if ($id <= 0) throw new \Exception("ID invalide");
+    public function trouverAchatParId(): void
+{
+    try {
+        $id = getIdFromUrl();
 
-    //         $achat = $this->trouverUC->execute($id);
-    //         if (!$achat) throw new \Exception("Achat introuvable");
+        if (!$id || $id <= 0) {
+            throw new \Exception("ID invalide");
+        }
 
-    //         $this->jsonResponse([
-    //             'data' => [
-    //                 'id'             => $achat->getId(),
-    //                 'liste_achat_id' => $achat->getListeAchatId(),
-    //                 'produit_id'     => $achat->getProduitId(),
-    //                 'quantite'       => $achat->getQuantite(),
-    //                 'prix_unitaire'  => $achat->getPrixUnitaire(),
-    //                 'unite'          => $achat->getUnite(),
-    //                 'created_at'     => $achat->getCreatedAt()->format('Y-m-d H:i:s')
-    //             ],
-    //             'message' => 'Achat trouvé'
-    //         ]);
+        $achat = $this->trouverUC->execute($id);
+        if (!$achat) throw new \Exception("Achat introuvable");
 
-    //     } catch (\Throwable $e) {
-    //         $this->jsonResponse(['erreur' => $e->getMessage()], 404);
-    //     }
-    // }
+        $this->jsonResponse([
+            'data' => [
+                'id'             => $achat->getId(),
+                'liste_achat_id' => $achat->getListeAchatId(),
+                'produit_id'     => $achat->getProduitId(),
+                'quantite'       => $achat->getQuantite(),
+                'prix_unitaire'  => $achat->getPrixUnitaire(),
+                'unite'          => $achat->getUnite(),
+                'created_at'     => $achat->getCreatedAt()->format('Y-m-d H:i:s')
+            ],
+            'message' => 'Achat trouvé'
+        ]);
+
+    } catch (\Throwable $e) {
+        $this->jsonResponse(['erreur' => $e->getMessage()], 404);
+    }
+}
+
 
     public function mettreAJourAchat(): void
     {
         try {
             $body         = $this->getRequestBody();
-            $id           = (int) ($body['id'] ?? 0);
+            $id           = getIdFromUrl();
             $quantite     = (int) ($body['quantite'] ?? 0);
             $prixUnitaire = (float) ($body['prix_unitaire'] ?? 0.0);
             $unite        = trim($body['unite'] ?? '');
@@ -184,7 +190,7 @@ final class AchatController
     {
         try {
             $body = $this->getRequestBody();
-            $id   = (int) ($body['id'] ?? 0);
+            $id   = getIdFromUrl();
 
             if ($id <= 0) throw new \Exception("ID invalide");
 

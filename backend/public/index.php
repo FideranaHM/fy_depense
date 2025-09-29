@@ -78,15 +78,38 @@ $routes = $routesWithPrefix;
 /* ---------- 7️⃣ Lecture requête ---------- */
 $methode = $_SERVER['REQUEST_METHOD'];
 $uri     = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$key     = $methode . ' ' . $uri;
 
-error_log("DEBUG: key recherchée = $key");
+error_log("DEBUG: URI demandée = $uri");
 error_log("DEBUG: routes dispo = " . implode(", ", array_keys($routes)));
-if (!isset($routes[$key])) {
+
+$handler = null;
+$params  = [];
+
+foreach ($routes as $pattern => $candidateHandler) {
+    [$routeMethod, $routePath] = explode(' ', $pattern, 2);
+
+    if ($routeMethod !== $methode) {
+        continue; // mauvaise méthode HTTP
+    }
+
+    // Convertit {id} en regex qui capture un segment
+    $regex = preg_replace('#\{[^/]+\}#', '([^/]+)', $routePath);
+    $regex = '#^' . $regex . '$#';
+
+    if (preg_match($regex, $uri, $matches)) {
+        array_shift($matches); // le match complet
+        $params  = $matches;   // ex: [12]
+        $handler = $candidateHandler;
+        break;
+    }
+}
+
+if (!$handler) {
     http_response_code(404);
     echo json_encode(['erreur' => 'Route introuvable']);
     exit;
 }
+
 
 /* ---------- 8️⃣ Lecture JSON ---------- */
 $input = file_get_contents('php://input');
@@ -96,19 +119,17 @@ if (!is_array($body)) {
 }
 
 /* ---------- 9️⃣ Appel de la route ---------- */
-$handler = $routes[$key];
-
 try {
-    if (is_callable($handler)) {                           // Closure (GET /)
-        $handler();
-    } else {                                               // [Controller, 'methode']
+    if (is_callable($handler)) { // Closure
+        $params=[...$params]; // pour éviter l'avertissemen
+        $handler( $params,$body);
+    } else { // [Controller, 'methode']
         if (!is_array($handler) || count($handler) !== 2) {
             throw new \RuntimeException('Handler mal formé : doit être [Controller, "methode"]');
         }
-        $controller        = $handler[0];
-        $methodeController = $handler[1];
-        error_log("Appel : " . get_class($controller) . "::$methodeController(" . json_encode($body) . ")");
-        $controller->$methodeController($body);            // ✅ on passe toujours $body
+        [$controller, $methodeController] = $handler;
+        error_log("Appel : " . get_class($controller) . "::$methodeController(" . json_encode($params) . ", " . json_encode($body) . ")");
+        $controller->$methodeController($params, $body);
     }
 } catch (\Throwable $e) {
     http_response_code(500);
@@ -118,6 +139,7 @@ try {
         'line'   => $e->getLine(),
     ]);
 }
+
 
 /* ----------Listes Achat  ---------- */
 

@@ -33,73 +33,24 @@ final class PdoAchatRepository implements AchatRepositoryInterface
     /**
      * Trouve un achat par son ID avec noms
      */
-    // public function trouverParId(int $id): ?Achat
-    // {
-    //     $sql = 'SELECT a.id, a.liste_achat_id, a.produit_id, a.quantite, a.prix_unitaire, a.unite, a.created_at,
-    //                    p.nom AS produit_nom,
-    //                    l.nom_liste AS liste_nom
-    //             FROM achat a
-    //             JOIN produit p ON a.produit_id = p.id
-    //             JOIN liste_achat l ON a.liste_achat_id = l.id
-    //             WHERE a.id = :id';
-    //     $stmt = $this->pdo->prepare($sql);
-    //     $stmt->execute([':id' => $id]);
-    //     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    //     if (!$row) return null;
-
-    //     $prixTotal = (float)$row['quantite'] * (float)$row['prix_unitaire']; // calcul PHP
-
-    //     return new Achat(
-    //         (int)$row['id'],
-    //         (int)$row['liste_achat_id'],
-    //         (int)$row['produit_id'],
-    //         (int)$row['quantite'],
-    //         (float)$row['prix_unitaire'],
-    //         $row['unite'],
-    //         new \DateTime($row['created_at']),
-    //         $row['liste_nom'],    // nom de la liste
-    //         $row['produit_nom'],   // nom du produit
-    //         $prixTotal             // prix total (quantité * prix unitaire
-    //     );
-    // }
-
-    /**
-     * Liste tous les achats d'une liste avec noms
-     */
-    public function listerParListe(int $listeId): array
-{
-    if ($listeId === 0) {
-        // Tous les achats
+    public function trouverParId(int $id): ?Achat
+    {
         $sql = 'SELECT a.id, a.liste_achat_id, a.produit_id, a.quantite, a.prix_unitaire, a.unite, a.created_at,
                        p.nom AS produit_nom,
                        l.nom_liste AS liste_nom
                 FROM achat a
                 JOIN produit p ON a.produit_id = p.id
                 JOIN liste_achat l ON a.liste_achat_id = l.id
-                ORDER BY a.created_at DESC';
-        $stmt = $this->pdo->query($sql);
-    } else {
-        // Filtrer par liste spécifique
-        $sql = 'SELECT a.id, a.liste_achat_id, a.produit_id, a.quantite, a.prix_unitaire, a.unite, a.created_at,
-                       p.nom AS produit_nom,
-                       l.nom_liste AS liste_nom
-                FROM achat a
-                JOIN produit p ON a.produit_id = p.id
-                JOIN liste_achat l ON a.liste_achat_id = l.id
-                WHERE a.liste_achat_id = :liste_id
-                ORDER BY a.created_at DESC';
+                WHERE a.id = :id';
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':liste_id' => $listeId]);
-    }
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $achats = [];
+        if (!$row) return null;
 
-    foreach ($rows as $row) {
-        $prixTotal = (float)$row['quantite'] * (float)$row['prix_unitaire'];
+        $prixTotal = (float)$row['quantite'] * (float)$row['prix_unitaire']; // calcul PHP
 
-        $achats[] = new Achat(
+        return new Achat(
             (int)$row['id'],
             (int)$row['liste_achat_id'],
             (int)$row['produit_id'],
@@ -108,13 +59,49 @@ final class PdoAchatRepository implements AchatRepositoryInterface
             $row['unite'],
             new \DateTime($row['created_at']),
             $row['liste_nom'],    // nom de la liste
-            $row['produit_nom'],  // nom du produit
-            $prixTotal             // prix total
+            $row['produit_nom'],   // nom du produit
+            $prixTotal             // prix total (quantité * prix unitaire
         );
     }
 
-    return $achats;
-}
+    /**
+     * Liste tous les achats d'une liste avec noms
+     */
+    public function listerParListe(int $listeId): array
+    {
+        if ($listeId === 0) {
+            // Tous les achats
+            $sql = 'SELECT a.id, a.liste_achat_id, a.produit_id, a.quantite, a.prix_unitaire, a.unite, a.created_at,
+                        p.nom AS produit_nom,
+                        l.nom_liste AS liste_nom
+                    FROM achat a
+                    JOIN produit p ON a.produit_id = p.id
+                    JOIN liste_achat l ON a.liste_achat_id = l.id
+                    ORDER BY a.created_at DESC';
+            $stmt = $this->pdo->query($sql);
+        }
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $achats = [];
+
+        foreach ($rows as $row) {
+            $prixTotal = (float)$row['quantite'] * (float)$row['prix_unitaire'];
+
+            $achats[] = new Achat(
+                (int)$row['id'],
+                (int)$row['liste_achat_id'],
+                (int)$row['produit_id'],
+                (int)$row['quantite'],
+                (float)$row['prix_unitaire'],
+                $row['unite'],
+                new \DateTime($row['created_at']),
+                $row['liste_nom'],    // nom de la liste
+                $row['produit_nom'],  // nom du produit
+                $prixTotal             // prix total
+            );
+        }
+
+        return $achats;
+    }
 
 
     /**
