@@ -14,6 +14,8 @@ use App\Infrastructure\Repository\PdoListeAchatRepository;
 use App\Infrastructure\Repository\PdoUtilisateurRepository;
 use App\Infrastructure\Service\JwtService;
 
+use function App\Helpers\Controller\getIdFromUrl;
+
 class ListeAchatController
 {
     private CreerListeAchatUseCase $useCase;
@@ -49,8 +51,8 @@ class ListeAchatController
         return array_merge(
             $r('GET',  '', [$controller, 'listeAchat']),
             $r('POST', '', [$controller, 'creationListesAchat']),
-            $r('PUT',  '', [$controller, 'modifierListe']),
-            $r('DELETE', '', [$controller, 'supprimerListe']),
+            $r('PUT',  '/{id}', [$controller, 'modifierListe']),
+            $r('DELETE', '/{id}', [$controller, 'supprimerListe']),
             $r('GET', '/date', [$controller, 'filtrerParDate']),
             $r('GET', '/jour', [$controller, 'filtrerParJour'])
         );
@@ -129,7 +131,7 @@ class ListeAchatController
         try {
             $userId = $this->getUserIdFromToken();
             $body = $this->getRequestBody();
-            $id = (int) ($_GET['id'] ?? 0);
+            $id = getIdFromUrl();
             $nom = trim($body['nom'] ?? '');
 
             if ($id <= 0 || $nom === '') {
@@ -162,7 +164,7 @@ class ListeAchatController
             $userId = $this->getUserIdFromToken();
             $body = $this->getRequestBody();
 
-            $listeId = (int) ($body['id'] ?? 0);
+            $listeId = getIdFromUrl();
             $confirm = $body['confirm'] ?? false; // Champ pour confirmation
 
             if ($listeId <= 0) {

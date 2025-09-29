@@ -11,11 +11,14 @@ use App\Application\UseCase\Utilisateur\RegisterUtilisateurUseCase;
 use App\Application\UseCase\Utilisateur\LoginUtilisateurUseCase;
 use App\Application\DTO\LoginUtilisateurDTO;
 use App\Infrastructure\Database\PdoConnection;
+use App\Application\UseCase\Utilisateur\LogoutUtilisateurUseCase;
+use App\Infrastructure\Service\JwtBlacklistService;
 
 class UtilisateurController
 {
     private RegisterUtilisateurUseCase $registerUC;
     private LoginUtilisateurUseCase $loginUC;
+    private LogoutUtilisateurUseCase $logoutUC;
 
     private static string $prefix = '/utilisateur';
 
@@ -26,11 +29,13 @@ class UtilisateurController
         $pdo = PdoConnection::get(); // ton singleton PDO
         $userRepo = new PdoUtilisateurRepository($pdo); // Repository concret
         $passwordHasher = new PasswordHasher();     // Service de hash
+        $blacklistService = new JwtBlacklistService(new PdoConnection());
         $jwtService     = new JwtService($_ENV['JWT_SECRET'] ?? 'secret');
 
         // Création des UseCases
         $this->registerUC = new RegisterUtilisateurUseCase($userRepo, $passwordHasher);
         $this->loginUC    = new LoginUtilisateurUseCase($userRepo, $passwordHasher, $jwtService);
+         $this->logoutUC   = new LogoutUtilisateurUseCase($blacklistService, $jwtService);
     }
 
     /**
@@ -56,7 +61,8 @@ class UtilisateurController
                 ]);
             }),
             $r('POST', '/register', [$controller, 'register']),
-            $r('POST', '/login', [$controller, 'login'])
+            $r('POST', '/login', [$controller, 'login']),
+            $r('POST', '/logout', [$controller, 'logout']),
         );
     }
 
@@ -119,4 +125,28 @@ class UtilisateurController
             ]);
         }
     }
+        public function logout(): void
+    {
+        $token = $_COOKIE['jwt'] ?? null;
+        $this->logoutUC->execute($token);
+
+        setcookie('jwt', '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Strict'
+        ]);
+
+        http_response_code(200);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status'  => 'success',
+            'data'    => null,
+            'message' => 'Déconnexion réussie',
+            'erreur'  => null
+        ]);
+        exit;
+    }
+    
 }

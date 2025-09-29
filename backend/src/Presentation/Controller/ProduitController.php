@@ -11,6 +11,8 @@ use App\Infrastructure\Database\PdoConnection;
 use App\Infrastructure\Repository\PdoProduitRepository;
 use App\Infrastructure\Service\JwtService;
 
+use function App\Helpers\Controller\getIdFromUrl;
+
 final class ProduitController
 {
     private CreerProduitUseCase $creerUC;
@@ -43,8 +45,8 @@ final class ProduitController
         return array_merge(
             $r('GET', '', [$controller, 'listerProduits']),
             $r('POST', '', [$controller, 'creerProduit']),
-            $r('PUT', '', [$controller, 'mettreAJourProduit']),
-            $r('DELETE', '', [$controller, 'supprimerProduit'])
+            $r('PUT', '/{id}', [$controller, 'mettreAJourProduit']),
+            $r('DELETE', '/{id}', [$controller, 'supprimerProduit'])
         );
     }
 
@@ -120,7 +122,7 @@ final class ProduitController
         try {
             $userId = $this->getUserIdFromToken();
             $body = $this->getRequestBody();
-            $id = (int) ($body['id'] ?? 0);
+            $id = getIdFromUrl();
             $nom = trim($body['nom'] ?? '');
 
             if ($id <= 0 || $nom === '') throw new \Exception("Données invalides");
@@ -143,7 +145,7 @@ final class ProduitController
             $userId = $this->getUserIdFromToken();
             $body = $this->getRequestBody();
 
-            $id = (int) ($body['id'] ?? 0);
+            $id = getIdFromUrl();
             $confirm = $body['confirm'] ?? false;
 
             if ($id <= 0) {

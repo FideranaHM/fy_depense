@@ -50,6 +50,11 @@ class DbMigrationService implements MigrationServiceInterface
                 INDEX idx_created_at (created_at),
                 INDEX idx_produit_created_at (produit_id, created_at)
             );
+            CREATE TABLE IF NOT EXISTS jwt_blacklist (
+                token VARCHAR(65) PRIMARY KEY,
+                expires_at DATETIME NOT NULL,
+                INDEX idx_expires_at (expires_at)
+            );
         ";
         $this->pdo->exec($sql);
     }
