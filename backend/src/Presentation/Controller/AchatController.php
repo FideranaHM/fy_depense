@@ -210,17 +210,18 @@ final class AchatController
     // -------------------- MÉTHODES PRIVÉES UTILES --------------------
 
     private function getUserIdFromToken(): int
-    {
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        $token = str_replace('Bearer ', '', $authHeader);
-        if (!$token) {
-            $this->jsonResponse(['erreur' => 'Token manquant'], 401);
-            exit;
-        }
-
-        $payload = $this->jwtService->decode($token);
-        return (int) $payload->uid;
+{
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $token = str_replace('Bearer ', '', $authHeader);
+    if (!$token) {
+        $this->jsonResponse(['erreur' => 'Token manquant'], 401);
+        exit;
     }
+
+    $payload = $this->jwtService->decode($token); // maintenant c'est un tableau
+    return (int) $payload['uid'];                // ✅ utiliser ['uid'] au lieu de ->uid
+}
+
 
     private function getRequestBody(): array
     {

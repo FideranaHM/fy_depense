@@ -60,9 +60,11 @@ final class ProduitController
             $this->jsonResponse(['erreur' => 'Token manquant'], 401);
             exit;
         }
-        $payload = $this->jwtService->decode($token);
-        return (int) $payload->uid;
+
+        $payload = $this->jwtService->decode($token); // maintenant c'est un tableau
+        return (int) $payload['uid'];                // ✅ utiliser ['uid'] au lieu de ->uid
     }
+
 
     private function getRequestBody(): array
     {

@@ -32,16 +32,16 @@ final class JwtService
 
     /**
      * Décode et vérifie un token
-     * @return object le payload (data)
+     * @return array le payload (toujours en tableau)
      * @throws \Exception si invalide ou expiré
      */
-    public function decode(string $token): object
+    public function decode(string $token): array
     {
         try {
             $decoded = JWT::decode($token, new Key($this->secret, 'HS256'));
-            return $decoded->data;
+            return (array) $decoded->data; // ✅ conversion en tableau
         } catch (\Throwable $e) {
-            throw new \Exception("Token invalide ou expiré");
+            throw new \Exception("Token invalide ou expiré : " . $e->getMessage());
         }
     }
 }
