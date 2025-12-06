@@ -27,13 +27,13 @@ final class AuthMiddleware
             throw new \Exception("Token manquant");
         }
 
-        $payload = $this->jwt->decode($token);
+        $payload = $this->jwt->decode($token); // => tableau
 
-        if (!isset($payload->uid)) {
+        if (!isset($payload['uid'])) { // ✅ utiliser ['uid'] au lieu de ->uid
             throw new \Exception("Token invalide : uid manquant");
         }
 
-        // Injection dans le "contexte global" pour que le contrôleur puisse l’utiliser
-        $_SERVER['user_id'] = (int) $payload->uid;
+        $_SERVER['user_id'] = (int) $payload['uid'];
     }
+
 }
